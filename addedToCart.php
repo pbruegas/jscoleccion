@@ -1,95 +1,10 @@
 <?php
-include ('conn.php'); // Include database connection
-session_start();
+include('conn.php'); // Include your database connection script
 
-if(isset($_POST['insert'])){
-    // Get form data
-    $category = $_POST['category'];
-    $productName = $_POST['productName'];
-    $availableItems = $_POST['availableItems'];
-    $price = $_POST['price'];
-    $image = $_FILES['imageUpload']['name'];
-    $image_tmp_name = $_FILES['imageUpload']['tmp_name'];
-    $image_folder = 'uploaded_img/'.$image;
-
-    if(empty($category) || empty($productName) || empty($availableItems) || empty($price) || empty($image)){
-        $message[] = 'Please fill out all fields.';
-    }else{
-        // Store image in folder and database
-        move_uploaded_file($image_tmp_name, $image_folder);
-        $insert = "INSERT INTO products (prod_category, prod_name, avail_items, prod_price, img_fileName) VALUES (?, ?, ?, ?, ?)";
-        $stmt = $con->prepare($insert);
-        $stmt->bind_param("sssss", $category, $productName, $availableItems, $price, $image);
-
-        if($stmt->execute()){
-            $message[] = 'New product added successfully.';
-            // Debugging statement
-            echo "Product added successfully.";
-        }else{
-            $message[] = 'Could not add the product.';
-            // Debugging statement
-            echo "Error adding product: " . $stmt->error;
-        }
-    }
-}
-
-
-
-if(isset($_POST['delete'])){
-    $delete_id = $_POST['delete_id'];
-    $delete_query = "DELETE FROM products WHERE prod_id = ?";
-    $stmt = $con->prepare($delete_query);
-    $stmt->bind_param("i", $delete_id);
-    
-    if($stmt->execute()){
-        $message[] = 'Product deleted successfully.';
-        // Redirect back to the products page
-        header('location:products.php');
-    }else{
-        $message[] = 'Could not delete the product.';
-        // Debugging statement
-        echo "Error deleting product: " . $stmt->error;
-    }
-}
-
-// Read operation - Fetch all users
-$query = "SELECT * FROM products ORDER BY prod_id DESC";
+// Fetch cart items
+$query = "SELECT `cart_id`, `cart_img`, `cart_prod`, `cart_name`, `cart_price` FROM `cart`";
 $result = mysqli_query($con, $query);
-
-// Update operation
-if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['update'])) {
-    $productId = $_POST['editProductId'];
-    $newCategory = $_POST['editCategory'];
-    $newProductName = $_POST['editProductName'];
-    $newPrice = $_POST['editPrice'];
-    $newImage = $_FILES['editImageUpload']['name'];
-    $newImage_tmp_name = $_FILES['editImageUpload']['tmp_name'];
-    $newImage_folder = 'uploaded_img/'.$newImage;
-
-    // Check if a new image is uploaded
-    if (!empty($newImage)) {
-        // If a new image is uploaded, move it to the specified folder
-        move_uploaded_file($newImage_tmp_name, $newImage_folder);
-    }
-
-    // Update query with image update
-    $updateQuery = "UPDATE products SET prod_category=?, prod_name=?, prod_price=?, img_fileName=? WHERE prod_id=?";
-    $stmt = $con->prepare($updateQuery);
-    $stmt->bind_param("sssss", $newCategory, $newProductName, $newPrice, $newImage, $productId);
-
-    if ($stmt->execute()) {
-        $_SESSION['success_message'] = "Product updated successfully!";
-        echo json_encode(['success' => true, 'message' => 'Product updated successfully']);
-        exit();
-    } else {
-        $_SESSION['error_message'] = "Error updating product: " . $stmt->error;
-        echo json_encode(['success' => false, 'message' => 'Error updating product']);
-        exit();
-    }
-}
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -384,15 +299,8 @@ body {
     margin-top: 20px;
 }
 
-/* CSS styles (omitted for brevity) */
-.small-image {
-            max-width: 100px;
-            height: 100px;
-        }
-
 
     </style>
-
 </head>
 <body>
 <div class="wrapper">
@@ -433,13 +341,7 @@ body {
                     <li class="sidebar-item">
                         <a href="addedToCart.php" class="sidebar-link">
                             <i class="fa-regular fa-user pe-2"></i>
-                            Cart Items
-                        </a>
-                    </li>
-                    <li class="sidebar-item">
-                        <a href="favorites.php" class="sidebar-link">
-                            <i class="fa-regular fa-user pe-2"></i>
-                            Favorites
+                           Cart Items
                         </a>
                     </li>
                 </ul>
@@ -468,167 +370,80 @@ body {
                 <div class="container-fluid">
                     <div class="mb-3">
                         <h4>Admin Dashboard</h4>
-
-                        <div class="container">
-        <h6>Add Product</h6>
-        <form id="addProductForm" action="products.php" method="post" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="category">Category:</label>
-                <input type="text" id="category" name="category" required>
-            </div>
-            <div class="form-group">
-                <label for="productName">Product Name:</label>
-                <input type="text" id="productName" name="productName" required>
-            </div>
-            <div class="form-group">
-            <label for="availableItems">Available Items:</label>
-            <input type="text" id="availableItems" name="availableItems" required>
-            </div>
-            <div class="form-group">
-                <label for="price">Price:</label>
-                <input type="text" id="price" name="price" required>
-            </div>
-            <div class="form-group">
-                <label for="imageUpload">Image:</label>
-                <input type="file" id="imageUpload" name="imageUpload" accept="image/*" required>
-            </div>
-            <button type="submit" class="btn btn-primary" name="insert">Add Product</button>
-        </form>
-    </div>
-
                     <!-- Table Element -->
                     <div class="card border-0">
                         <div class="card-header">
                             <h5 class="card-title">
-                                Products Table
+                                Users Table
                             </h5>
+                            <h6 class="card-subtitle text-muted">
+                                Users of JS Collection
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                        <table>
+                        <h4>Items in Cart</h4>
+        <table>
+            <tr>
+                <th>Image</th>
+                <th>Product</th>
+                <th>Name</th>
+                <th>Price</th>
+            </tr>
+            <?php while ($row = mysqli_fetch_assoc($result)): ?>
+                <tr>
+                <td>
+                <?php if (!empty($row['cart_img'])): ?>
+                    <img src="./assets/images/products/<?php echo $row['cart_img']; ?>" style="width: 50px;">
+                <?php else: ?>
+                    <span>No Image Available</span>
+                <?php endif; ?>
+            </td>
+                    <td><?php echo $row['cart_prod']; ?></td>
+                    <td><?php echo $row['cart_name']; ?></td>
+                    <td><?php echo $row['cart_price']; ?></td>
+                </tr>
+            <?php endwhile; ?>
+        </table>
+    </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
 
-                            <table id="productTable">
-    <tr>
-        <th>Category</th>
-        <th>Image</th>
-        <th>Product Name</th>
-        <th>Available Items</th>
-        <th>Price</th>
-        <th>Action</th>
-    </tr>
-    <?php
-    // Fetch products from the database
-    $select = "SELECT * FROM products";
-    $result = mysqli_query($con, $select);
+    <!-- Display success or error messages if any -->
+    <?php if (isset($_SESSION['success_message'])): ?>
+        <div class="message-box"><?php echo $_SESSION['success_message']; ?></div>
+        <?php unset($_SESSION['success_message']); ?>
+    <?php endif; ?>
+    <?php if (isset($_SESSION['error_message'])): ?>
+        <div class="message-box"><?php echo $_SESSION['error_message']; ?></div>
+        <?php unset($_SESSION['error_message']); ?>
+    <?php endif; ?>
 
-    // Check if there are any products
-    if (mysqli_num_rows($result) > 0) {
-        while ($row = mysqli_fetch_assoc($result)) {
-            echo "<tr>";
-            echo "<td>" . $row['prod_category'] . "</td>";
-            echo "<td><img src='uploaded_img/" . $row['img_fileName'] . "' class='small-image'></td>";
-            echo "<td>" . $row['prod_name'] . "</td>";
-            echo "<td>" . $row['avail_items'] . "</td>"; // Add the available items column
-            echo "<td>" . $row['prod_price'] . "</td>";
-            echo "<td>
-                <button onclick='openEditForm(" . $row['prod_id'] . ")' class='btn btn-primary'>Edit</button>
-                <form method='post' action='products.php' style='display: inline;'>
-                    <input type='hidden' name='delete_id' value='" . $row['prod_id'] . "'>
-                    <button type='submit' name='delete' class='btn btn-danger'>Delete</button>
-                </form>
-              </td>";
-            echo "</tr>";
+    <script>
+        // JavaScript to fade out the message box after a certain time
+        const messageBox = document.querySelector('.message-box');
+        if (messageBox) {
+            setTimeout(() => {
+                messageBox.style.opacity = '0';
+                setTimeout(() => {
+                    messageBox.style.display = 'none';
+                }, 500);
+            }, 3000); // Fade out after 3 seconds
         }
-    } else {
-        echo "<tr><td colspan='6'>No products found.</td></tr>";
-    }
-    ?>
-</table>
 
-
-<!-- Edit Form -->
-<div id="editForm" class="edit-form" style="display: none;">
-    <div class="edit-form-container">
-        <h4>Edit Product</h4>
-        <form id="editProductForm" action="products.php" method="post" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="editCategory">Category:</label>
-                <input type="text" id="editCategory" name="editCategory" required>
-            </div>
-            <div class="form-group">
-                <label for="editProductName">Product Name:</label>
-                <input type="text" id="editProductName" name="editProductName" required>
-            </div>
-            <div class="form-group">
-                <label for="editAvailableItems">Available Items:</label>
-                <input type="text" id="editAvailableItems" name="editAvailableItems" required>
-            </div>
-            <div class="form-group">
-                <label for="editPrice">Price:</label>
-                <input type="text" id="editPrice" name="editPrice" required>
-            </div>
-            <div class="form-group">
-                <label for="editImageUpload">Image:</label>
-                <input type="file" id="editImageUpload" name="editImageUpload" accept="image/*">
-            </div>
-            <input type="hidden" id="editProductId" name="editProductId">
-            <button type="submit" class="btn btn-primary">Save Changes</button>
-        </form>
-    </div>
-</div>
-
-<!-- Edit Form -->
-<div id="editForm" class="edit-form" style="display: none;">
-    <div class="edit-form-container">
-        <h4>Edit Product</h4>
-        <form id="editProductForm" action="products.php" method="post" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="editCategory">Category:</label>
-                <input type="text" id="editCategory" name="editCategory" required>
-            </div>
-            <div class="form-group">
-                <label for="editProductName">Product Name:</label>
-                <input type="text" id="editProductName" name="editProductName" required>
-            </div>
-            <div class="form-group">
-                <label for="editAvailableItems">Available Items:</label>
-                <input type="text" id="editAvailableItems" name="editAvailableItems" required>
-            </div>
-            <div class="form-group">
-                <label for="editPrice">Price:</label>
-                <input type="text" id="editPrice" name="editPrice" required>
-            </div>
-            <div class="form-group">
-                <label for="editImageUpload">Image:</label>
-                <input type="file" id="editImageUpload" name="editImageUpload" accept="image/*">
-            </div>
-            <input type="hidden" id="editProductId" name="editProductId">
-            <button type="submit" class="btn btn-primary">Save Changes</button>
-        </form>
-    </div>
-</div>
-
-<script>
-    // Function to open the edit form with pre-filled data
-    function openEditForm(productId) {
-        // Get product details from the table
-        const category = document.getElementById('category' + productId).innerText;
-        const productName = document.getElementById('productName' + productId).innerText;
-        const availableItems = document.getElementById('availableItems' + productId).innerText;
-        const price = document.getElementById('price' + productId).innerText;
-
-        // Set values in the edit form
-        document.getElementById('editCategory').value = category;
-        document.getElementById('editProductName').value = productName;
-        document.getElementById('editAvailableItems').value = availableItems;
-        document.getElementById('editPrice').value = price;
-        document.getElementById('editProductId').value = productId;
-
-        // Show the edit form
-        document.getElementById('editForm').style.display = 'block';
-    }
-</script>
-
+        // Function to show edit form
+        function showEditForm(userId, name, email) {
+            // Your code to display an edit form or modal with user details for editing
+        }
+    </script>
     <!-- Bootstrap JS and Custom Script -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="adscript.js"></script>
-    <script src="prodEdit.js"></script>
+    <script src="editForm.js"></script>
 
 </body>
 </html>

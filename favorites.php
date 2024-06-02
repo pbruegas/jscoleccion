@@ -512,123 +512,12 @@ body {
         <th>Price</th>
         <th>Action</th>
     </tr>
-    <?php
-    // Fetch products from the database
-    $select = "SELECT * FROM products";
-    $result = mysqli_query($con, $select);
-
-    // Check if there are any products
-    if (mysqli_num_rows($result) > 0) {
-        while ($row = mysqli_fetch_assoc($result)) {
-            echo "<tr>";
-            echo "<td>" . $row['prod_category'] . "</td>";
-            echo "<td><img src='uploaded_img/" . $row['img_fileName'] . "' class='small-image'></td>";
-            echo "<td>" . $row['prod_name'] . "</td>";
-            echo "<td>" . $row['avail_items'] . "</td>"; // Add the available items column
-            echo "<td>" . $row['prod_price'] . "</td>";
-            echo "<td>
-                <button onclick='openEditForm(" . $row['prod_id'] . ")' class='btn btn-primary'>Edit</button>
-                <form method='post' action='products.php' style='display: inline;'>
-                    <input type='hidden' name='delete_id' value='" . $row['prod_id'] . "'>
-                    <button type='submit' name='delete' class='btn btn-danger'>Delete</button>
-                </form>
-              </td>";
-            echo "</tr>";
-        }
-    } else {
-        echo "<tr><td colspan='6'>No products found.</td></tr>";
-    }
-    ?>
+    
 </table>
-
-
-<!-- Edit Form -->
-<div id="editForm" class="edit-form" style="display: none;">
-    <div class="edit-form-container">
-        <h4>Edit Product</h4>
-        <form id="editProductForm" action="products.php" method="post" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="editCategory">Category:</label>
-                <input type="text" id="editCategory" name="editCategory" required>
-            </div>
-            <div class="form-group">
-                <label for="editProductName">Product Name:</label>
-                <input type="text" id="editProductName" name="editProductName" required>
-            </div>
-            <div class="form-group">
-                <label for="editAvailableItems">Available Items:</label>
-                <input type="text" id="editAvailableItems" name="editAvailableItems" required>
-            </div>
-            <div class="form-group">
-                <label for="editPrice">Price:</label>
-                <input type="text" id="editPrice" name="editPrice" required>
-            </div>
-            <div class="form-group">
-                <label for="editImageUpload">Image:</label>
-                <input type="file" id="editImageUpload" name="editImageUpload" accept="image/*">
-            </div>
-            <input type="hidden" id="editProductId" name="editProductId">
-            <button type="submit" class="btn btn-primary">Save Changes</button>
-        </form>
-    </div>
-</div>
-
-<!-- Edit Form -->
-<div id="editForm" class="edit-form" style="display: none;">
-    <div class="edit-form-container">
-        <h4>Edit Product</h4>
-        <form id="editProductForm" action="products.php" method="post" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="editCategory">Category:</label>
-                <input type="text" id="editCategory" name="editCategory" required>
-            </div>
-            <div class="form-group">
-                <label for="editProductName">Product Name:</label>
-                <input type="text" id="editProductName" name="editProductName" required>
-            </div>
-            <div class="form-group">
-                <label for="editAvailableItems">Available Items:</label>
-                <input type="text" id="editAvailableItems" name="editAvailableItems" required>
-            </div>
-            <div class="form-group">
-                <label for="editPrice">Price:</label>
-                <input type="text" id="editPrice" name="editPrice" required>
-            </div>
-            <div class="form-group">
-                <label for="editImageUpload">Image:</label>
-                <input type="file" id="editImageUpload" name="editImageUpload" accept="image/*">
-            </div>
-            <input type="hidden" id="editProductId" name="editProductId">
-            <button type="submit" class="btn btn-primary">Save Changes</button>
-        </form>
-    </div>
-</div>
-
-<script>
-    // Function to open the edit form with pre-filled data
-    function openEditForm(productId) {
-        // Get product details from the table
-        const category = document.getElementById('category' + productId).innerText;
-        const productName = document.getElementById('productName' + productId).innerText;
-        const availableItems = document.getElementById('availableItems' + productId).innerText;
-        const price = document.getElementById('price' + productId).innerText;
-
-        // Set values in the edit form
-        document.getElementById('editCategory').value = category;
-        document.getElementById('editProductName').value = productName;
-        document.getElementById('editAvailableItems').value = availableItems;
-        document.getElementById('editPrice').value = price;
-        document.getElementById('editProductId').value = productId;
-
-        // Show the edit form
-        document.getElementById('editForm').style.display = 'block';
-    }
-</script>
 
     <!-- Bootstrap JS and Custom Script -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="adscript.js"></script>
-    <script src="prodEdit.js"></script>
 
 </body>
 </html>
